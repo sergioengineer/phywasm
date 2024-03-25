@@ -1,6 +1,5 @@
 use crate::body::{Body, JsBody};
 use crate::vector::Vector;
-use serde_json::from_str;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
 use web_sys::js_sys::Array;
@@ -68,22 +67,19 @@ impl Engine {
         self.last_execution_time = Some(now);
 
         for n in 0..self.bodies.len() {
-            match self.bodies[n].as_mut() {
-                Some(body) => {
-                    body.add_force(GRAVITY);
-                    body.update(delta_time);
+            if let Some(body) = self.bodies[n].as_mut() {
+                body.add_force(GRAVITY);
+                body.update(delta_time);
 
-                    let body_event = JsBody {
-                        id: n,
-                        position: body.position,
-                    };
+                let body_event = JsBody {
+                    id: n,
+                    position: body.position,
+                };
 
-                    let _ = window().unwrap().post_message(
-                        &JsValue::from_str(&serde_json::to_string(&body_event).unwrap()),
-                        "*",
-                    );
-                }
-                _ => {}
+                let _ = window().unwrap().post_message(
+                    &JsValue::from_str(&serde_json::to_string(&body_event).unwrap()),
+                    "*",
+                );
             }
         }
     }
