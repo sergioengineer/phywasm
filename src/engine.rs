@@ -10,7 +10,7 @@ extern "C" {
     fn alert(msg: &str);
 }
 
-static GRAVITY: Vector = Vector { x: 0., y: -9. };
+static GRAVITY: Vector = Vector { x: 0., y: -10. };
 #[wasm_bindgen()]
 pub struct Engine {
     bodies: Vec<Option<Body>>,
@@ -37,7 +37,7 @@ impl Engine {
         match free_slot_index {
             Some(free_slot_index) => {
                 console::log(&Array::from(&JsValue::from_str(
-                    &("added: ".to_owned() + &free_slot_index.to_string().to_owned()),
+                    &("added: ".to_owned() + &free_slot_index.to_string()),
                 )));
                 self.bodies
                     .insert(free_slot_index, Some(Body::new(position)));
@@ -63,8 +63,10 @@ impl Engine {
             self.last_execution_time = Some(now);
             return;
         }
-        let delta_time = now - self.last_execution_time.unwrap() * 0.001;
+
+        let delta_time = (now - self.last_execution_time.unwrap()) * 0.001;
         self.last_execution_time = Some(now);
+        let mut body_events: Vec<JsBody> = Vec::with_capacity(self.bodies.len());
 
         for n in 0..self.bodies.len() {
             if let Some(body) = self.bodies[n].as_mut() {
@@ -75,12 +77,13 @@ impl Engine {
                     id: n,
                     position: body.position,
                 };
-
-                let _ = window().unwrap().post_message(
-                    &JsValue::from_str(&serde_json::to_string(&body_event).unwrap()),
-                    "*",
-                );
+                body_events.push(body_event);
             }
         }
+
+        let _ = window().unwrap().post_message(
+            &JsValue::from_str(&serde_json::to_string(&body_events).unwrap()),
+            "*",
+        );
     }
 }

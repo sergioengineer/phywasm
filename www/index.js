@@ -1,6 +1,7 @@
 import * as wasm from "phywasm"
 
-const engine = wasm.Engine.new(32)
+const num = 8000
+const engine = wasm.Engine.new(num)
 
 function update_engine(time) {
   try {
@@ -9,11 +10,15 @@ function update_engine(time) {
   window.requestAnimationFrame(update_engine)
 }
 
-engine.add_body(wasm.Vector.new(32.0, 32.0))
-engine.add_body(wasm.Vector.new(32.0, 32.0))
+for (let i = 0; i < num; i++) engine.add_body(wasm.Vector.new(i, 32.0))
 update_engine(performance.now())
 
-window.addEventListener("message", (msg, evt) => {
+let last = performance.now()
+window.addEventListener("message", (msg) => {
   const data = JSON.parse(msg.data)
-  console.log(data.id, data.position.x, data.position.y)
+  const dt = performance.now() - last
+  last = performance.now()
+
+  console.clear()
+  console.log(1000 / dt)
 })
